@@ -18,12 +18,14 @@ repositories {
 ext {
     graphviz = '0.15.1'
     logback = '1.2.3'
+    guava = '28.2-jre'
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "guru.nidi:graphviz-java-all-j2v8:$graphviz"
     implementation "ch.qos.logback:logback-classic:$logback"
+    implementation "com.google.guava:guava:$guava"
 }
 
 compileKotlin {
