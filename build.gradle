@@ -1,9 +1,14 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.3.71'
+    id 'application'
 }
 
 group 'in.obvious'
 version '0.0.1'
+
+application {
+    mainClassName = 'in.obvious.mobiusgraphs.AppKt'
+}
 
 repositories {
     mavenCentral()
