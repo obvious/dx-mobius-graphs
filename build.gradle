@@ -10,6 +10,10 @@ application {
     mainClassName = 'in.obvious.mobiusgraphs.AppKt'
 }
 
+test {
+    useJUnitPlatform()
+}
+
 repositories {
     mavenCentral()
     jcenter()
@@ -20,6 +24,8 @@ ext {
     logback = '1.2.3'
     guava = '28.2-jre'
     jackson = '2.10.3'
+    junit = '5.6.2'
+    truth = '1.0.1'
 }
 
 dependencies {
@@ -30,6 +36,9 @@ dependencies {
     implementation "com.fasterxml.jackson.core:jackson-databind:$jackson"
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jackson"
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$jackson"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junit"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit"
+    testImplementation "com.google.truth:truth:$truth"
 }
 
 compileKotlin {
