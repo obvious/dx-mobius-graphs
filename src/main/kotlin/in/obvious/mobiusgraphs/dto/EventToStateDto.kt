@@ -1,5 +1,6 @@
 package `in`.obvious.mobiusgraphs.dto
 
+import `in`.obvious.mobiusgraphs.fieldsMap
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonNode
@@ -18,9 +19,7 @@ data class EventToStateDto(
 
         override fun deserialize(p: JsonParser, ctxt: DeserializationContext): EventToStateDto {
             return with(p.codec.readTree<ObjectNode>(p)) {
-                val fields: Map<String, JsonNode> = fields()
-                    .asSequence()
-                    .associateBy({ (fieldName, _) -> fieldName }, { (_, fieldValue) -> fieldValue })
+                val fields = fieldsMap()
 
                 require(fields.size == 1) {
                     val joinedKeys = fields.keys.joinToString()

@@ -1,5 +1,6 @@
 package `in`.obvious.mobiusgraphs.dto
 
+import `in`.obvious.mobiusgraphs.isNullOrType
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationContext
@@ -24,11 +25,11 @@ data class StateDto(
                 val eventsNode = get("events")
                 val effectsNode = get("effects")
 
-                require(eventsNode == null || eventsNode.isNull || eventsNode is ArrayNode) {
+                require(eventsNode.isNullOrType<ArrayNode>()) {
                     "Expected 'events' to be an array!"
                 }
 
-                require(effectsNode == null || effectsNode.isNull || effectsNode is ArrayNode) {
+                require(effectsNode.isNullOrType<ArrayNode>()) {
                     "Expected 'effects' to be an array!"
                 }
 

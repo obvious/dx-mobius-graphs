@@ -1,9 +1,10 @@
 package `in`.obvious.mobiusgraphs.dto
 
+import `in`.obvious.mobiusgraphs.fieldsMap
+import `in`.obvious.mobiusgraphs.isNullOrType
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.node.ArrayNode
@@ -20,9 +21,7 @@ data class EffectDto(
 
         override fun deserialize(p: JsonParser, ctxt: DeserializationContext): EffectDto {
             return with(p.codec.readTree<ObjectNode>(p)) {
-                val fields: Map<String, JsonNode> = fields()
-                    .asSequence()
-                    .associateBy({ (fieldName, _) -> fieldName }, { (_, fieldValue) -> fieldValue })
+                val fields = fieldsMap()
 
                 require(fields.size == 1) {
                     val joinedKeys = fields.keys.joinToString()
@@ -33,7 +32,7 @@ data class EffectDto(
 
                 val eventsNode = get(key).get("events")
 
-                require(eventsNode == null || eventsNode.isNull || eventsNode is ArrayNode) {
+                require(eventsNode.isNullOrType<ArrayNode>()) {
                     "Expected 'events' to be an array!"
                 }
 
