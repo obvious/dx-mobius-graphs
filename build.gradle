@@ -19,6 +19,7 @@ ext {
     graphviz = '0.15.1'
     logback = '1.2.3'
     guava = '28.2-jre'
+    jackson = '2.10.3'
 }
 
 dependencies {
@@ -26,6 +27,9 @@ dependencies {
     implementation "guru.nidi:graphviz-java-all-j2v8:$graphviz"
     implementation "ch.qos.logback:logback-classic:$logback"
     implementation "com.google.guava:guava:$guava"
+    implementation "com.fasterxml.jackson.core:jackson-databind:$jackson"
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jackson"
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$jackson"
 }
 
 compileKotlin {
