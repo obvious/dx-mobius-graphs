@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 @JsonDeserialize(using = EffectDto.Deserializer::class)
 data class EffectDto(
     val name: String,
-    val events: List<EventToStateDto>
+    val events: List<EventToStateDto> = emptyList()
 ) {
     class Deserializer : StdDeserializer<EffectDto>(EffectDto::class.java) {
 

@@ -1,16 +1,20 @@
 package `in`.obvious.mobiusgraphs.core
 
-sealed class State
+sealed class State(
+    val name: String,
+    val effects: Set<Effect>
+)
 
 data class Concrete(
-    val name: String,
-    val effects: Set<Effect> = emptySet()
-): State()
+    private val _name: String,
+    private val _effects: Set<Effect> = emptySet()
+) : State(_name, _effects)
 
-data class Transient(
-    val effects: Set<Effect>
-): State() {
+data class Intermediate(
+    private val _name: String,
+    private val _effects: Set<Effect>
+) : State(_name, _effects) {
     init {
-        if (effects.isEmpty()) throw IllegalArgumentException("Transient state must have at least one effect!")
+        if (_effects.isEmpty()) throw IllegalArgumentException("Intermediate state must have at least one effect!")
     }
 }
