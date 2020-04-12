@@ -110,10 +110,10 @@ class GraphGenerator {
                     is ExternalEvent -> Label.of(event.name)
                     is InternalEvent -> Label.of("${event.source.name}: ${event.name}")
                 }
-                val link = sourceNode.linkTo(targetNode).add(edgeName)
+                val link = sourceNode.linkTo(targetNode).with(edgeName)
 
-                if(event is InternalEvent) {
-                    link.add(Color.NAVY)
+                if (event is InternalEvent) {
+                    link.add(Color.NAVY).add(Color.NAVY.font())
                 }
 
                 sourceNode to link
