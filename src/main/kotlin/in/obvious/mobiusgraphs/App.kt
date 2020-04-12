@@ -67,9 +67,8 @@ class GraphGenerator {
             registerModule(KotlinModule())
         }
 
-        val logicGraph = with(objectMapper.readValue<LogicDto>(File(path), LogicDto::class.java)) {
-            LogicDtoToStateMachine().map(this)
-        }
+        val logicDto = objectMapper.readValue<LogicDto>(File(path), LogicDto::class.java)
+        val logicGraph = LogicDtoToStateMachine().map(logicDto)
 
         val nodes: Map<String, MutableNode> = logicGraph
             .nodes()
@@ -123,7 +122,10 @@ class GraphGenerator {
             .map { it.second }
 
         val graph = mutGraph().setDirected(true)
-        graph.graphAttrs().add(Rank.dir(Rank.RankDir.TOP_TO_BOTTOM))
+        graph.graphAttrs().apply {
+            add(Rank.dir(Rank.RankDir.TOP_TO_BOTTOM))
+            add(Label.html("<b>${logicDto.name}</b>").locate(Label.Location.TOP))
+        }
         graph.nodeAttrs().add(Shape.ELLIPSE)
 
         graph.add(nodes.values.toList())
