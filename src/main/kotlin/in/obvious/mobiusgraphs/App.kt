@@ -18,10 +18,9 @@ import guru.nidi.graphviz.model.MutableNode
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.io.File
-import javax.swing.ImageIcon
-import javax.swing.JFrame
-import javax.swing.JLabel
-import javax.swing.SwingConstants
+import javax.swing.*
+import javax.swing.filechooser.FileFilter
+import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
     logger().debug("Run with args: ${args.joinToString()}")
@@ -29,15 +28,35 @@ fun main(args: Array<String>) {
     val graphGenerator = GraphGenerator()
 
     with(JFrame("Mobius Graphs")) {
-        val image = graphGenerator.generateFromFile("sample.yaml")
+        val chooser = JFileChooser(File(System.getProperty("user.dir"))).apply {
+            addChoosableFileFilter(object : FileFilter() {
+                private val acceptedExtensions = setOf("yml", "yaml")
 
-        size = Dimension(image.width + 50, image.height + 50)
+                override fun accept(file: File): Boolean {
+                    return file.isFile && file.extension.toLowerCase() in acceptedExtensions
+                }
 
-        add(JLabel(ImageIcon(image), SwingConstants.CENTER))
+                override fun getDescription() = "Mobius schema file"
+            })
+        }
+        val chooserResult = chooser.showOpenDialog(this)
 
-        defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+        if (chooserResult == JFileChooser.APPROVE_OPTION) {
+            val file = chooser.selectedFile
+            val path = file.absolutePath
 
-        isVisible = true
+            val image = graphGenerator.generateFromFile(path)
+
+            size = Dimension(image.width + 50, image.height + 50)
+
+            add(JLabel(ImageIcon(image), SwingConstants.CENTER))
+
+            defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+            isVisible = true
+        } else {
+            dispose()
+            exitProcess(0)
+        }
     }
 }
 
