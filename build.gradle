@@ -26,6 +26,8 @@ ext {
     jackson = '2.10.3'
     junit = '5.6.2'
     truth = '1.0.1'
+    rxJava = '3.0.2'
+    rxKotlin = '3.0.0'
 }
 
 dependencies {
@@ -39,6 +41,8 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junit"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit"
     testImplementation "com.google.truth:truth:$truth"
+    implementation "io.reactivex.rxjava3:rxjava:$rxJava"
+    implementation "io.reactivex.rxjava3:rxkotlin:$rxKotlin"
 }
 
 compileKotlin {
