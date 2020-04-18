@@ -15,9 +15,12 @@ import guru.nidi.graphviz.engine.Format
 import guru.nidi.graphviz.engine.Graphviz
 import guru.nidi.graphviz.model.Factory.*
 import guru.nidi.graphviz.model.MutableNode
+import io.reactivex.rxjava3.schedulers.Schedulers.from
+import io.reactivex.rxjava3.schedulers.Schedulers.io
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.io.File
+import java.time.Duration
 import javax.swing.*
 import javax.swing.filechooser.FileFilter
 import kotlin.system.exitProcess
@@ -43,13 +46,22 @@ fun main(args: Array<String>) {
 
         if (chooserResult == JFileChooser.APPROVE_OPTION) {
             val file = chooser.selectedFile
-            val path = file.absolutePath
 
-            val image = graphGenerator.generateFromFile(path)
+            val iconLabel = JLabel()
+            add(iconLabel, SwingConstants.CENTER)
 
-            size = Dimension(image.width + 50, image.height + 50)
-
-            add(JLabel(ImageIcon(image), SwingConstants.CENTER))
+            file
+                .whenChanged()
+                .sample(Duration.ofSeconds(1))
+                .map { it.absolutePath }
+                .observeOn(io())
+                .map(graphGenerator::generateFromFile)
+                .observeOn(from(SwingEventDispatcherExecutor()))
+                .subscribe { image ->
+                    size = Dimension(image.width + 50, image.height + 50)
+                    iconLabel.icon = ImageIcon(image)
+                    revalidate()
+                }
 
             defaultCloseOperation = JFrame.EXIT_ON_CLOSE
             isVisible = true
