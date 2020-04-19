@@ -76,15 +76,23 @@ private fun pickFile(parent: Component): File? {
     return if (chooserResult == JFileChooser.APPROVE_OPTION) chooser.selectedFile else null
 }
 
-@VisibleForTesting
+class LogicDtoParser {
+
+    private val objectMapper = ObjectMapper(YAMLFactory()).apply {
+        registerModule(KotlinModule())
+    }
+
+    fun fromFile(file: File): LogicDto {
+        return objectMapper.readValue<LogicDto>(file, LogicDto::class.java)
+    }
+}
+
 class GraphGenerator {
 
-    fun generateFromFile(path: String): BufferedImage {
-        val objectMapper = ObjectMapper(YAMLFactory()).apply {
-            registerModule(KotlinModule())
-        }
+    private val logicDtoParser = LogicDtoParser()
 
-        val logicDto = objectMapper.readValue<LogicDto>(File(path), LogicDto::class.java)
+    fun generateFromFile(path: String): BufferedImage {
+        val logicDto = logicDtoParser.fromFile(File(path))
         val name = logicDto.name
         val logicGraph = LogicDtoToStateMachine().map(logicDto)
 
