@@ -86,15 +86,31 @@ private inline fun JFrame.confirm(
 }
 
 private fun JFrame.renderMobiusGraphFrom(file: File) {
+    val graphGenerator = GraphGenerator()
+    val logicDtoParser = LogicDtoParser()
+    val networkMapper = LogicDtoToStateMachine()
+
     val exportMenuItem = JMenuItem("Export")
     exportMenuItem.addActionListener {
         saveFile { fileToSave ->
-            if(file.exists() && file.isFile) {
-                confirm("Overwrite file", "Are you sure you want to overwrite '${file.name}'?") {
-                    logger().debug("Export to file: ${fileToSave.path}")
+            if(fileToSave.exists() && fileToSave.isFile) {
+                confirm("Overwrite file", "Are you sure you want to overwrite '${fileToSave.name}'?") {
+                    renderMobiusGraphTo(
+                        sourceFile = file,
+                        targetFile = fileToSave,
+                        logicDtoParser = logicDtoParser,
+                        networkMapper = networkMapper,
+                        graphGenerator = graphGenerator
+                    )
                 }
             } else {
-                logger().debug("Export to file: ${fileToSave.path}")
+                renderMobiusGraphTo(
+                    sourceFile = file,
+                    targetFile = fileToSave,
+                    logicDtoParser = logicDtoParser,
+                    networkMapper = networkMapper,
+                    graphGenerator = graphGenerator
+                )
             }
         }
     }
@@ -107,10 +123,6 @@ private fun JFrame.renderMobiusGraphFrom(file: File) {
         add(menu)
     }
     add(menuBar, BorderLayout.NORTH)
-
-    val graphGenerator = GraphGenerator()
-    val logicDtoParser = LogicDtoParser()
-    val networkMapper = LogicDtoToStateMachine()
 
     val iconLabel = JLabel().apply {
         verticalAlignment = SwingConstants.CENTER
@@ -180,4 +192,17 @@ private fun JFrame.renderMobiusGraphFrom(file: File) {
 
     defaultCloseOperation = JFrame.EXIT_ON_CLOSE
     isVisible = true
+}
+
+private fun renderMobiusGraphTo(
+    sourceFile: File,
+    targetFile: File,
+    logicDtoParser: LogicDtoParser,
+    networkMapper: LogicDtoToStateMachine,
+    graphGenerator: GraphGenerator
+) {
+    val logicDto = logicDtoParser.fromFile(sourceFile)
+    val logicGraph = networkMapper.map(logicDto)
+
+    graphGenerator.saveToFile(logicGraph, logicDto.name, targetFile)
 }
