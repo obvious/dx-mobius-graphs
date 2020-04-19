@@ -14,8 +14,7 @@ import guru.nidi.graphviz.engine.Graphviz
 import guru.nidi.graphviz.model.Factory.mutGraph
 import guru.nidi.graphviz.model.Factory.mutNode
 import guru.nidi.graphviz.model.MutableNode
-import io.reactivex.rxjava3.schedulers.Schedulers.from
-import io.reactivex.rxjava3.schedulers.Schedulers.io
+import io.reactivex.rxjava3.schedulers.Schedulers.*
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.image.BufferedImage
@@ -32,6 +31,8 @@ fun main(@Suppress("UnusedMainParameter") args: Array<String>) {
         if (inputFile != null) {
 
             val graphGenerator = GraphGenerator()
+            val logicDtoParser = LogicDtoParser()
+            val networkMapper = LogicDtoToStateMachine()
 
             val iconLabel = JLabel()
             add(iconLabel, SwingConstants.CENTER)
@@ -39,9 +40,11 @@ fun main(@Suppress("UnusedMainParameter") args: Array<String>) {
             inputFile
                 .whenChanged()
                 .sample(Duration.ofSeconds(1))
-                .map { it.absolutePath }
                 .observeOn(io())
-                .map(graphGenerator::generateFromFile)
+                .map(logicDtoParser::fromFile)
+                .observeOn(computation())
+                .map { logicDto -> networkMapper.map(logicDto) to logicDto.name }
+                .map { (graph, name) -> graphGenerator.generate(graph, name) }
                 .observeOn(from(SwingEventDispatcherExecutor()))
                 .subscribe { image ->
                     size = Dimension(image.width + 50, image.height + 50)
@@ -91,16 +94,6 @@ class LogicDtoParser {
 }
 
 class GraphGenerator {
-
-    private val logicDtoParser = LogicDtoParser()
-
-    fun generateFromFile(path: String): BufferedImage {
-        val logicDto = logicDtoParser.fromFile(File(path))
-        val name = logicDto.name
-        val logicGraph = LogicDtoToStateMachine().map(logicDto)
-
-        return generate(logicGraph, name)
-    }
 
     @Suppress("UnstableApiUsage")
     fun generate(
