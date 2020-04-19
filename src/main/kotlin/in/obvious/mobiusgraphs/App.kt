@@ -50,6 +50,22 @@ private fun JFrame.exit() {
 }
 
 private fun JFrame.renderMobiusGraphFrom(file: File) {
+    val exportMenuItem = JMenuItem("Export")
+    exportMenuItem.addActionListener { event ->
+        if (event.source == exportMenuItem) {
+            logger().debug("Export file!")
+        }
+    }
+
+    val menuBar = JMenuBar().apply {
+        val menu = JMenu("File").apply {
+            add(exportMenuItem)
+        }
+
+        add(menu)
+    }
+    add(menuBar, BorderLayout.NORTH)
+
     val graphGenerator = GraphGenerator()
     val logicDtoParser = LogicDtoParser()
     val networkMapper = LogicDtoToStateMachine()
@@ -104,7 +120,7 @@ private fun JFrame.renderMobiusGraphFrom(file: File) {
                         foreground = limeGreen
                     }
 
-                    size = Dimension(image.width, image.height + statusLabelFontSize + (statusLabelVerticalPadding * 3))
+                    size = Dimension(image.width, menuBar.height + image.height + statusLabelFontSize + (statusLabelVerticalPadding * 3))
                 }
                 is Failure -> {
                     logger().error("Parse failure", result.cause)
