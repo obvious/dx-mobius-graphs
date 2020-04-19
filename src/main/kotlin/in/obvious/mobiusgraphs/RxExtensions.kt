@@ -22,6 +22,10 @@ fun <T> Observable<T>.sample(duration: Duration): Observable<T> {
     return sample(duration.toMillis(), TimeUnit.MILLISECONDS)
 }
 
+fun <T> Observable<T>.debounce(duration: Duration): Observable<T> {
+    return debounce(duration.toMillis(), TimeUnit.MILLISECONDS)
+}
+
 class SwingEventDispatcherExecutor : Executor {
 
     override fun execute(command: Runnable) {

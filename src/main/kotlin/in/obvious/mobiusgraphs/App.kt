@@ -39,12 +39,12 @@ fun main(@Suppress("UnusedMainParameter") args: Array<String>) {
 
             inputFile
                 .whenChanged()
-                .sample(Duration.ofSeconds(1))
                 .observeOn(io())
                 .map(logicDtoParser::fromFile)
                 .observeOn(computation())
                 .map { logicDto -> networkMapper.map(logicDto) to logicDto.name }
                 .map { (graph, name) -> graphGenerator.generate(graph, name) }
+                .debounce(Duration.ofSeconds(1))
                 .observeOn(from(SwingEventDispatcherExecutor()))
                 .subscribe { image ->
                     size = Dimension(image.width + 50, image.height + 50)
