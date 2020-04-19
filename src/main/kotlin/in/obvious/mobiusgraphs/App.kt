@@ -74,24 +74,6 @@ fun main(args: Array<String>) {
 
 class GraphGenerator {
 
-    fun generateAsImage(): BufferedImage {
-        val graph = graph("Sample")
-            .directed()
-            .graphAttr()
-            .with(Rank.dir(Rank.RankDir.LEFT_TO_RIGHT))
-            .with(
-                node("a").with(Color.RED).link(node("b")),
-                node("b").link(node("c")).with(Style.DASHED),
-                node("c")
-            )
-
-        return Graphviz
-            .fromGraph(graph)
-            .height(100)
-            .render(Format.SVG)
-            .toImage()
-    }
-
     @Suppress("UnstableApiUsage")
     fun generateFromFile(path: String): BufferedImage {
         val objectMapper = ObjectMapper(YAMLFactory()).apply {
