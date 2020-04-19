@@ -6,7 +6,6 @@ import `in`.obvious.mobiusgraphs.mappers.LogicDtoToStateMachine
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.google.common.annotations.VisibleForTesting
 import com.google.common.graph.Network
 import guru.nidi.graphviz.attribute.*
 import guru.nidi.graphviz.attribute.Label.Justification.MIDDLE
@@ -85,6 +84,10 @@ class LogicDtoParser {
     fun fromFile(file: File): LogicDto {
         return objectMapper.readValue<LogicDto>(file, LogicDto::class.java)
     }
+
+    fun fromString(data: String): LogicDto {
+        return objectMapper.readValue<LogicDto>(data, LogicDto::class.java)
+    }
 }
 
 class GraphGenerator {
@@ -100,7 +103,7 @@ class GraphGenerator {
     }
 
     @Suppress("UnstableApiUsage")
-    private fun generate(
+    fun generate(
         logicGraph: Network<State, Event>,
         name: String
     ): BufferedImage {
