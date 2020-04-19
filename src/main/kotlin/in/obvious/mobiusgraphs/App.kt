@@ -15,7 +15,6 @@ import guru.nidi.graphviz.model.Factory.mutGraph
 import guru.nidi.graphviz.model.Factory.mutNode
 import guru.nidi.graphviz.model.MutableNode
 import io.reactivex.rxjava3.schedulers.Schedulers.*
-import java.awt.Component
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.io.File
@@ -25,43 +24,13 @@ import javax.swing.filechooser.FileFilter
 import kotlin.system.exitProcess
 
 fun main(@Suppress("UnusedMainParameter") args: Array<String>) {
-    with(JFrame("Mobius Graphs")) {
-        val inputFile = pickFile()
-
-        if (inputFile != null) {
-
-            val graphGenerator = GraphGenerator()
-            val logicDtoParser = LogicDtoParser()
-            val networkMapper = LogicDtoToStateMachine()
-
-            val iconLabel = JLabel()
-            add(iconLabel, SwingConstants.CENTER)
-
-            inputFile
-                .whenChanged()
-                .observeOn(io())
-                .map(logicDtoParser::fromFile)
-                .observeOn(computation())
-                .map { logicDto -> networkMapper.map(logicDto) to logicDto.name }
-                .map { (graph, name) -> graphGenerator.generate(graph, name) }
-                .debounce(Duration.ofSeconds(1))
-                .observeOn(from(SwingEventDispatcherExecutor()))
-                .subscribe { image ->
-                    size = Dimension(image.width + 50, image.height + 50)
-                    iconLabel.icon = ImageIcon(image)
-                    revalidate()
-                }
-
-            defaultCloseOperation = JFrame.EXIT_ON_CLOSE
-            isVisible = true
-        } else {
-            dispose()
-            exitProcess(0)
-        }
-    }
+    with(JFrame("Mobius Graphs")) { pickFile(::renderMobiusGraphFrom, ::exit) }
 }
 
-private fun Component.pickFile(): File? {
+private inline fun JFrame.pickFile(
+    onSelected: (File) -> Unit,
+    otherwise: () -> Unit
+) {
     val chooser = JFileChooser(File(System.getProperty("user.dir"))).apply {
         addChoosableFileFilter(object : FileFilter() {
             private val acceptedExtensions = setOf("yml", "yaml")
@@ -75,7 +44,45 @@ private fun Component.pickFile(): File? {
     }
     val chooserResult = chooser.showOpenDialog(this)
 
-    return if (chooserResult == JFileChooser.APPROVE_OPTION) chooser.selectedFile else null
+    if (chooserResult == JFileChooser.APPROVE_OPTION)
+        onSelected(chooser.selectedFile)
+    else
+        otherwise()
+}
+
+private fun JFrame.exit() {
+    dispose()
+    exitProcess(0)
+}
+
+private fun JFrame.renderMobiusGraphFrom(file: File) {
+    val graphGenerator = GraphGenerator()
+    val logicDtoParser = LogicDtoParser()
+    val networkMapper = LogicDtoToStateMachine()
+
+    val iconLabel = JLabel().apply {
+        verticalAlignment = SwingConstants.CENTER
+        horizontalAlignment = SwingConstants.CENTER
+    }
+    add(iconLabel, SwingConstants.CENTER)
+
+    file
+        .whenChanged()
+        .observeOn(io())
+        .map(logicDtoParser::fromFile)
+        .observeOn(computation())
+        .map { logicDto -> networkMapper.map(logicDto) to logicDto.name }
+        .map { (graph, name) -> graphGenerator.generate(graph, name) }
+        .debounce(Duration.ofSeconds(1))
+        .observeOn(from(SwingEventDispatcherExecutor()))
+        .subscribe { image ->
+            size = Dimension(image.width + 50, image.height + 50)
+            iconLabel.icon = ImageIcon(image)
+            revalidate()
+        }
+
+    defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+    isVisible = true
 }
 
 class LogicDtoParser {
