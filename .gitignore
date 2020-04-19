@@ -198,3 +198,6 @@ gradle-app.setting
 
 # Custom
 .idea/
+
+# Approvals tests
+*.received.*

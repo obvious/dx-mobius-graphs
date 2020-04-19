@@ -9,6 +9,7 @@ import `in`.obvious.mobiusgraphs.mappers.LogicDtoToStateMachine
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.google.common.annotations.VisibleForTesting
 import guru.nidi.graphviz.attribute.*
 import guru.nidi.graphviz.attribute.Label.Justification.MIDDLE
 import guru.nidi.graphviz.engine.Format
@@ -77,7 +78,8 @@ private fun pickFile(parent: Component): File? {
     return if (chooserResult == JFileChooser.APPROVE_OPTION) chooser.selectedFile else null
 }
 
-private class GraphGenerator {
+@VisibleForTesting
+class GraphGenerator {
 
     @Suppress("UnstableApiUsage")
     fun generateFromFile(path: String): BufferedImage {
