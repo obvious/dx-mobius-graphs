@@ -10,6 +10,7 @@ import guru.nidi.graphviz.model.Factory
 import guru.nidi.graphviz.model.Link
 import guru.nidi.graphviz.model.MutableNode
 import java.awt.image.BufferedImage
+import java.io.File
 
 @Suppress("UnstableApiUsage")
 class GraphGenerator {
@@ -18,6 +19,33 @@ class GraphGenerator {
         logicGraph: Network<State, Event>,
         name: String
     ): BufferedImage {
+        return graphviz(logicGraph, name)
+            .render(Format.SVG)
+            .toImage()
+    }
+
+    fun saveToFile(
+        logicGraph: Network<State, Event>,
+        name: String,
+        file: File
+    ) {
+        val extension = file.extension.toLowerCase()
+
+        graphviz(logicGraph, name)
+            .render(
+                when (extension) {
+                    "svg" -> Format.SVG
+                    "png" -> Format.PNG
+                    else -> throw IllegalArgumentException("Only SVG and PNG files are allowed!")
+                }
+            )
+            .toFile(file)
+    }
+
+    private fun graphviz(
+        logicGraph: Network<State, Event>,
+        name: String
+    ): Graphviz {
         val nodes: Map<String, MutableNode> = constructNodes(logicGraph)
 
         linkNodesWithEdges(nodes, logicGraph)
@@ -35,10 +63,9 @@ class GraphGenerator {
 
         graph.add(nodes.values.toList())
 
-        return Graphviz.fromGraph(graph)
+        return Graphviz
+            .fromGraph(graph)
             .height(1000)
-            .render(Format.SVG)
-            .toImage()
     }
 
     private fun linkNodesWithEdges(
