@@ -4,10 +4,7 @@ import `in`.obvious.mobiusgraphs.mappers.LogicDtoToStateMachine
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.schedulers.Schedulers.from
 import io.reactivex.rxjava3.schedulers.Schedulers.io
-import java.awt.BorderLayout
-import java.awt.Color
-import java.awt.Dimension
-import java.awt.Font
+import java.awt.*
 import java.io.File
 import java.time.Duration
 import javax.swing.*
@@ -44,16 +41,61 @@ private inline fun JFrame.pickFile(
         otherwise()
 }
 
+private inline fun JFrame.saveFile(
+    onSelected: (File) -> Unit
+) {
+    val chooser = JFileChooser(File(System.getProperty("user.dir"))).apply {
+        addChoosableFileFilter(object : FileFilter() {
+            private val acceptedExtensions = setOf("svg", "png")
+
+            override fun accept(file: File): Boolean {
+                return file.isFile && file.extension.toLowerCase() in acceptedExtensions
+            }
+
+            override fun getDescription() = "Image files"
+        })
+    }
+    val chooserResult = chooser.showSaveDialog(this)
+
+    if (chooserResult == JFileChooser.APPROVE_OPTION) onSelected(chooser.selectedFile)
+}
+
 private fun JFrame.exit() {
     dispose()
     exitProcess(0)
 }
 
+private inline fun JFrame.confirm(
+    title: String,
+    message: String,
+    crossinline confirmed: () -> Unit
+) {
+    JDialog(this, title, true).apply dialog@ {
+        layout = FlowLayout()
+        add(JLabel(message))
+        add(JButton("Overwrite!").apply {
+            addActionListener {
+                confirmed()
+                this@dialog.dispose()
+            }
+        })
+        size = Dimension(400, 150)
+        setLocationRelativeTo(this@confirm)
+        isVisible = true
+    }
+}
+
 private fun JFrame.renderMobiusGraphFrom(file: File) {
     val exportMenuItem = JMenuItem("Export")
-    exportMenuItem.addActionListener { event ->
-        if (event.source == exportMenuItem) {
-            logger().debug("Export file!")
+    exportMenuItem.addActionListener {
+        saveFile { fileToSave ->
+            if(file.exists() && file.isFile) {
+                confirm("Overwrite file", "Are you sure you want to overwrite '${file.name}'?") {
+                    logger().debug("Export to file: ${fileToSave.path}")
+                }
+            } else {
+                logger().debug("Export to file: ${fileToSave.path}")
+            }
         }
     }
 
@@ -120,7 +162,10 @@ private fun JFrame.renderMobiusGraphFrom(file: File) {
                         foreground = limeGreen
                     }
 
-                    size = Dimension(image.width, menuBar.height + image.height + statusLabelFontSize + (statusLabelVerticalPadding * 3))
+                    size = Dimension(
+                        image.width,
+                        menuBar.height + image.height + statusLabelFontSize + (statusLabelVerticalPadding * 3)
+                    )
                 }
                 is Failure -> {
                     logger().error("Parse failure", result.cause)
