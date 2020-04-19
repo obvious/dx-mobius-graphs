@@ -13,10 +13,12 @@ import guru.nidi.graphviz.attribute.*
 import guru.nidi.graphviz.attribute.Label.Justification.MIDDLE
 import guru.nidi.graphviz.engine.Format
 import guru.nidi.graphviz.engine.Graphviz
-import guru.nidi.graphviz.model.Factory.*
+import guru.nidi.graphviz.model.Factory.mutGraph
+import guru.nidi.graphviz.model.Factory.mutNode
 import guru.nidi.graphviz.model.MutableNode
 import io.reactivex.rxjava3.schedulers.Schedulers.from
 import io.reactivex.rxjava3.schedulers.Schedulers.io
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.io.File
@@ -25,32 +27,18 @@ import javax.swing.*
 import javax.swing.filechooser.FileFilter
 import kotlin.system.exitProcess
 
-fun main(args: Array<String>) {
-    logger().debug("Run with args: ${args.joinToString()}")
-
-    val graphGenerator = GraphGenerator()
-
+fun main(@Suppress("UnusedMainParameter") args: Array<String>) {
     with(JFrame("Mobius Graphs")) {
-        val chooser = JFileChooser(File(System.getProperty("user.dir"))).apply {
-            addChoosableFileFilter(object : FileFilter() {
-                private val acceptedExtensions = setOf("yml", "yaml")
+        val inputFile = pickFile(this)
 
-                override fun accept(file: File): Boolean {
-                    return file.isFile && file.extension.toLowerCase() in acceptedExtensions
-                }
+        if (inputFile != null) {
 
-                override fun getDescription() = "Mobius schema file"
-            })
-        }
-        val chooserResult = chooser.showOpenDialog(this)
-
-        if (chooserResult == JFileChooser.APPROVE_OPTION) {
-            val file = chooser.selectedFile
+            val graphGenerator = GraphGenerator()
 
             val iconLabel = JLabel()
             add(iconLabel, SwingConstants.CENTER)
 
-            file
+            inputFile
                 .whenChanged()
                 .sample(Duration.ofSeconds(1))
                 .map { it.absolutePath }
@@ -72,7 +60,24 @@ fun main(args: Array<String>) {
     }
 }
 
-class GraphGenerator {
+private fun pickFile(parent: Component): File? {
+    val chooser = JFileChooser(File(System.getProperty("user.dir"))).apply {
+        addChoosableFileFilter(object : FileFilter() {
+            private val acceptedExtensions = setOf("yml", "yaml")
+
+            override fun accept(file: File): Boolean {
+                return file.isFile && file.extension.toLowerCase() in acceptedExtensions
+            }
+
+            override fun getDescription() = "Mobius schema file"
+        })
+    }
+    val chooserResult = chooser.showOpenDialog(parent)
+
+    return if (chooserResult == JFileChooser.APPROVE_OPTION) chooser.selectedFile else null
+}
+
+private class GraphGenerator {
 
     @Suppress("UnstableApiUsage")
     fun generateFromFile(path: String): BufferedImage {
