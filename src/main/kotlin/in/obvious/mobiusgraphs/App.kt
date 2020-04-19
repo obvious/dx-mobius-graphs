@@ -1,8 +1,13 @@
 package `in`.obvious.mobiusgraphs
 
 import `in`.obvious.mobiusgraphs.mappers.LogicDtoToStateMachine
-import io.reactivex.rxjava3.schedulers.Schedulers.*
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.schedulers.Schedulers.from
+import io.reactivex.rxjava3.schedulers.Schedulers.io
+import java.awt.BorderLayout
+import java.awt.Color
 import java.awt.Dimension
+import java.awt.Font
 import java.io.File
 import java.time.Duration
 import javax.swing.*
@@ -10,7 +15,10 @@ import javax.swing.filechooser.FileFilter
 import kotlin.system.exitProcess
 
 fun main(@Suppress("UnusedMainParameter") args: Array<String>) {
-    with(JFrame("Mobius Graphs")) { pickFile(::renderMobiusGraphFrom, ::exit) }
+    with(JFrame("Mobius Graphs")) {
+        layout = BorderLayout()
+        pickFile(::renderMobiusGraphFrom, ::exit)
+    }
 }
 
 private inline fun JFrame.pickFile(
@@ -50,20 +58,62 @@ private fun JFrame.renderMobiusGraphFrom(file: File) {
         verticalAlignment = SwingConstants.CENTER
         horizontalAlignment = SwingConstants.CENTER
     }
-    add(iconLabel, SwingConstants.CENTER)
+
+
+    val statusLabelFontSize = 32
+    val statusLabelVerticalPadding = 16
+    val statusFont = Font(Font.SANS_SERIF, Font.BOLD, statusLabelFontSize)
+    val limeGreen = Color.decode("#32cd32")
+    val orangeRed = Color.decode("#ff4500")
+
+    val statusLabel = JLabel().apply {
+        isOpaque = true
+        background = Color.DARK_GRAY
+        font = statusFont
+        border = BorderFactory.createEmptyBorder(statusLabelVerticalPadding, 0, statusLabelVerticalPadding, 0)
+        verticalAlignment = SwingConstants.CENTER
+        horizontalAlignment = SwingConstants.CENTER
+    }
+    add(iconLabel, BorderLayout.CENTER)
+    add(statusLabel, BorderLayout.SOUTH)
 
     file
         .whenChanged()
         .observeOn(io())
-        .map(logicDtoParser::fromFile)
-        .observeOn(computation())
-        .map { logicDto -> networkMapper.map(logicDto) to logicDto.name }
-        .map { (graph, name) -> graphGenerator.generate(graph, name) }
+        .flatMap { sourceFile ->
+            Observable
+                .fromCallable {
+                    val logicDto = logicDtoParser.fromFile(sourceFile)
+                    val logicGraph = networkMapper.map(logicDto)
+
+                    Success(graphGenerator.generate(logicGraph, logicDto.name)) as Result
+                }
+                .onErrorReturn(::Failure)
+        }
         .debounce(Duration.ofSeconds(1))
         .observeOn(from(SwingEventDispatcherExecutor()))
-        .subscribe { image ->
-            size = Dimension(image.width + 50, image.height + 50)
-            iconLabel.icon = ImageIcon(image)
+        .subscribe { result ->
+
+            when (result) {
+                is Success -> {
+                    val image = result.image
+                    iconLabel.icon = ImageIcon(image)
+
+                    statusLabel.apply {
+                        text = "Updated!"
+                        foreground = limeGreen
+                    }
+
+                    size = Dimension(image.width, image.height + statusLabelFontSize + (statusLabelVerticalPadding * 3))
+                }
+                is Failure -> {
+                    logger().error("Parse failure", result.cause)
+                    statusLabel.apply {
+                        text = "Failed to parse, see logs for details!"
+                        foreground = orangeRed
+                    }
+                }
+            }
             revalidate()
         }
 
