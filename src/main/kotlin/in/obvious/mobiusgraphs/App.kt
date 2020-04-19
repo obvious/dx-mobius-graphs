@@ -26,7 +26,7 @@ import kotlin.system.exitProcess
 
 fun main(@Suppress("UnusedMainParameter") args: Array<String>) {
     with(JFrame("Mobius Graphs")) {
-        val inputFile = pickFile(this)
+        val inputFile = pickFile()
 
         if (inputFile != null) {
 
@@ -61,7 +61,7 @@ fun main(@Suppress("UnusedMainParameter") args: Array<String>) {
     }
 }
 
-private fun pickFile(parent: Component): File? {
+private fun Component.pickFile(): File? {
     val chooser = JFileChooser(File(System.getProperty("user.dir"))).apply {
         addChoosableFileFilter(object : FileFilter() {
             private val acceptedExtensions = setOf("yml", "yaml")
@@ -73,7 +73,7 @@ private fun pickFile(parent: Component): File? {
             override fun getDescription() = "Mobius schema file"
         })
     }
-    val chooserResult = chooser.showOpenDialog(parent)
+    val chooserResult = chooser.showOpenDialog(this)
 
     return if (chooserResult == JFileChooser.APPROVE_OPTION) chooser.selectedFile else null
 }
