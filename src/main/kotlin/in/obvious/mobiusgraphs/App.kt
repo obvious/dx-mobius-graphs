@@ -1,15 +1,13 @@
 package `in`.obvious.mobiusgraphs
 
-import `in`.obvious.mobiusgraphs.core.Concrete
-import `in`.obvious.mobiusgraphs.core.ExternalEvent
-import `in`.obvious.mobiusgraphs.core.Intermediate
-import `in`.obvious.mobiusgraphs.core.InternalEvent
+import `in`.obvious.mobiusgraphs.core.*
 import `in`.obvious.mobiusgraphs.dto.LogicDto
 import `in`.obvious.mobiusgraphs.mappers.LogicDtoToStateMachine
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.graph.Network
 import guru.nidi.graphviz.attribute.*
 import guru.nidi.graphviz.attribute.Label.Justification.MIDDLE
 import guru.nidi.graphviz.engine.Format
@@ -81,15 +79,23 @@ private fun pickFile(parent: Component): File? {
 @VisibleForTesting
 class GraphGenerator {
 
-    @Suppress("UnstableApiUsage")
     fun generateFromFile(path: String): BufferedImage {
         val objectMapper = ObjectMapper(YAMLFactory()).apply {
             registerModule(KotlinModule())
         }
 
         val logicDto = objectMapper.readValue<LogicDto>(File(path), LogicDto::class.java)
+        val name = logicDto.name
         val logicGraph = LogicDtoToStateMachine().map(logicDto)
 
+        return generate(logicGraph, name)
+    }
+
+    @Suppress("UnstableApiUsage")
+    private fun generate(
+        logicGraph: Network<State, Event>,
+        name: String
+    ): BufferedImage {
         val nodes: Map<String, MutableNode> = logicGraph
             .nodes()
             .map { state ->
@@ -144,7 +150,7 @@ class GraphGenerator {
         val graph = mutGraph().setDirected(true)
         graph.graphAttrs().apply {
             add(Rank.dir(Rank.RankDir.TOP_TO_BOTTOM))
-            add(Label.html("<b>${logicDto.name}</b>").locate(Label.Location.TOP))
+            add(Label.html("<b>$name</b>").locate(Label.Location.TOP))
         }
         graph.nodeAttrs().add(Shape.ELLIPSE)
 
