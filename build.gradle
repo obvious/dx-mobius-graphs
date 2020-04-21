@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'in.obvious'
-version '0.0.1'
+version '0.1.0'
 
 application {
     mainClassName = 'in.obvious.mobiusgraphs.AppKt'
