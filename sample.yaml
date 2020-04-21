@@ -1,4 +1,4 @@
-name: ChangeLanguage
+name: Select Country
 graph:
   Fetching:
     effects:
