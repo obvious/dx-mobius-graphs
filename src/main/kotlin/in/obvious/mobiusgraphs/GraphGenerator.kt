@@ -105,10 +105,10 @@ class GraphGenerator {
 
         val edgeName = when (event) {
             is ExternalEvent -> Label.of(
-                event.name
+                " ${event.name} "
             )
             is InternalEvent -> Label.of(
-                "${event.source.name}: ${event.name}"
+                " ${event.source.name}: ${event.name} "
             )
         }
         val link = sourceNode.linkTo(targetNode).with(edgeName)
